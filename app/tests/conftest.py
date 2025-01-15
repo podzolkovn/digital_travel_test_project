@@ -1,6 +1,8 @@
 import pytest
 from app.core.config import settings
 from app.infrastructure.db import engine, Base
+from app.domain.models.auth import User
+from app.domain.models.main import Product, Order, OrderProduct
 
 
 @pytest.fixture(autouse=True)
