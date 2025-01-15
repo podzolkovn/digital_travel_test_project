@@ -24,19 +24,34 @@ if TYPE_CHECKING:
 
 
 class User(AbstractModel, SQLAlchemyBaseUserTable[int]):
+    """
+    Represents a user with additional role-based property and database utility method.
+    """
 
     @property
     def role(self) -> str:
+        """
+        Returns the user's role as 'admin' if superuser, otherwise 'user'.
+        """
         return "admin" if self.is_superuser else "user"
 
     @classmethod
     def get_db(cls, session: "AsyncSession"):
+        """
+        Returns an SQLAlchemyUserDatabase instance for interacting with user data.
+        """
         return SQLAlchemyUserDatabase(session, cls)
 
 
 class AccessToken(Base, SQLAlchemyBaseAccessTokenTable[int]):
+    """
+    Represents an access token associated with a user.
+    """
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
 
     @classmethod
     def get_db(cls, session: "AsyncSession"):
+        """
+        Returns an SQLAlchemyAccessTokenDatabase instance for interacting with access token data.
+        """
         return SQLAlchemyAccessTokenDatabase(session, cls)
