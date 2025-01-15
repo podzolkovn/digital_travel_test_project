@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from app.infrastructure.db import Base
 from fastapi_users_db_sqlalchemy import (
     SQLAlchemyBaseUserTable,
     SQLAlchemyUserDatabase
@@ -33,7 +34,7 @@ class User(AbstractModel, SQLAlchemyBaseUserTable[int]):
         return SQLAlchemyUserDatabase(session, cls)
 
 
-class AccessToken(AbstractModel, SQLAlchemyBaseAccessTokenTable[int]):
+class AccessToken(Base, SQLAlchemyBaseAccessTokenTable[int]):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
 
     @classmethod
