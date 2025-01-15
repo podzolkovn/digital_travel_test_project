@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     PORT: int
 
+    LIFE_TIME_SECONDS: int
     SECRET_JWT: str
 
     MODE: str
