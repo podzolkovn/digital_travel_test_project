@@ -61,7 +61,6 @@ class OrderProduct(AbstractModel):
     including additional fields like quantity.
     """
     __tablename__ = "order_products"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), nullable=False)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False)
 
