@@ -9,15 +9,14 @@ if TYPE_CHECKING:
     from app.domain.models.auth import AccessToken
 
 
-bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+bearer_transport = BearerTransport(tokenUrl="auth/login")
 
 
 def get_database_strategy(
     access_token_db: AccessTokenDatabase["AccessToken"] = Depends(get_access_token_db),
 ) -> DatabaseStrategy:
     return DatabaseStrategy(
-        access_token_db,
-        lifetime_seconds=settings.LIFE_TIME_SECONDS
+        access_token_db, lifetime_seconds=settings.LIFE_TIME_SECONDS
     )
 
 
