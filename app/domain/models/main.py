@@ -16,6 +16,9 @@ class StatusEnum(enum.Enum):
 
 
 class Product(AbstractModel):
+    """
+    Represents a product available for purchase, including its name, quantity, price, and associated orders.
+    """
     __tablename__ = "products"
     name: Mapped[str] = mapped_column(String(length=255), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -29,6 +32,9 @@ class Product(AbstractModel):
 
 
 class Order(AbstractModel):
+    """
+    Represents a customer order, including customer details, order status, total price, and associated products.
+    """
     __tablename__ = "orders"
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     customer_name: Mapped[str] = mapped_column(
