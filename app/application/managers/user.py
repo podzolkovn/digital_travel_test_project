@@ -8,7 +8,7 @@ from fastapi import Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
 
 dictConfig(LoggerConfig().model_dump())
-logger = logging.getLogger("ai_prompt")
+logger = logging.getLogger(__name__)
 
 SECRET = settings.SECRET_JWT
 
