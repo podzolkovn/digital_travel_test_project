@@ -42,18 +42,13 @@ async def create_orders(
     user: UserRead = Depends(current_user),
     order_repository: OrdersRepository = Depends(get_order_db),
 ) -> JSONResponse:
-    try:
-        order_manager: OrderManager = OrderManager(order_repository=order_repository)
-        order_data: JSONResponse = await order_manager.on_after_create_order(
-            data=data.model_dump(),
-            user=user,
-        )
-        return order_data
-    except ValueError as e:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": str(e)},
-        )
+
+    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_data: JSONResponse = await order_manager.on_after_create_order(
+        data=data.model_dump(),
+        user=user,
+    )
+    return order_data
 
 
 @router.get(
