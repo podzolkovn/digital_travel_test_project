@@ -1,35 +1,60 @@
-from typing import Any, TypeVar, Type
+from typing import Any, TypeVar
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from .abstract import BaseRepository
-from app.domain.models.main import Order, Product, OrderProduct
+
 
 T = TypeVar("T")
 
 
 class OrdersRepository(BaseRepository):
-    def __init__(self, session: AsyncSession, model: Type[T]) -> None:
-        super().__init__(session, model)
-        self.model = Order
+    async def create(self, obj_data: dict[Any, Any]) -> T:
+        from app.domain.models.product import Product
 
-    async def create(self, obj_data: dict[Any, Any]) -> Order:
-        async with self.session.begin():
-            products: list[dict[str, str]] = obj_data.pop("products")
-            order: Order = self.model(**obj_data)
+        products_data: list[dict[str, str]] = obj_data.pop("products")
+        order: T = self.model(**obj_data)
+        self.session.add(order)
 
-            self.session.add(order)
-
-            for product_data in products:
-                product: Product = Product(**product_data)
-                self.session.add(product)
-
-                order_product: OrderProduct = OrderProduct(
-                    order=order,
-                    product=product,
-                )
-                self.session.add(order_product)
-
+        try:
             await self.session.commit()
+        except Exception as e:
+            await self.session.rollback()
+            raise e
 
-        return order
+        for product_data in products_data:
+            product: Product = Product(**product_data)
+            self.session.add(product)
+
+            try:
+                await self.session.commit()
+            except Exception as e:
+                await self.session.rollback()
+                raise e
+
+            order: T = await self.session.scalar(
+                select(self.model)
+                .where(self.model.id == order.id)
+                .options(
+                    selectinload(self.model.products),
+                )
+            )
+
+            order.products.append(product)
+
+            try:
+                await self.session.commit()
+            except Exception as e:
+                await self.session.rollback()
+                raise e
+
+        stmt = (
+            select(self.model)
+            .where(self.model.id == order.id)
+            .options(
+                selectinload(self.model.products),
+            )
+        )
+        order: T = await self.session.execute(stmt)
+        return order.scalar_one_or_none()
