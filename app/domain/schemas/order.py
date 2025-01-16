@@ -10,7 +10,6 @@ class OrderBase(AbstractWriteUpdateSchemas):
     Represents the base schema for order-related data including user_id, customer_name, and status.
     """
 
-    user_id: int
     customer_name: str
     status: str
 
@@ -21,6 +20,7 @@ class OrderRead(AbstractReadSchemas, OrderBase):
     """
 
     id: int
+    user_id: int
     total_price: decimal.Decimal
     products: list[ProductRead]
 
