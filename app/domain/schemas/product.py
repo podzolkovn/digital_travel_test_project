@@ -1,10 +1,9 @@
 import decimal
 from typing import Optional
+from .abstract import AbstractReadSchemas, AbstractWriteUpdateSchemas
 
-from .abstract import AbstractSchemas
 
-
-class ProductBase(AbstractSchemas):
+class ProductBase(AbstractWriteUpdateSchemas):
     """
     Represents the base schema for product-related data with fields name, price, and quantity.
     """
@@ -14,7 +13,7 @@ class ProductBase(AbstractSchemas):
     quantity: int
 
 
-class ProductRead(ProductBase):
+class ProductRead(AbstractReadSchemas, ProductBase):
     """
     Schema for reading product data with id, inherited from ProductBase.
     """

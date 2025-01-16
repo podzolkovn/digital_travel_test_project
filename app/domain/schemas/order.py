@@ -1,10 +1,11 @@
 import decimal
 from typing import Optional
-from .abstract import AbstractSchemas
+
+from .abstract import AbstractReadSchemas, AbstractWriteUpdateSchemas
 from .product import ProductRead, ProductWrite, ProductUpdate
 
 
-class OrderBase(AbstractSchemas):
+class OrderBase(AbstractWriteUpdateSchemas):
     """
     Represents the base schema for order-related data including user_id, customer_name, and status.
     """
@@ -14,7 +15,7 @@ class OrderBase(AbstractSchemas):
     status: str
 
 
-class OrderRead(OrderBase):
+class OrderRead(AbstractReadSchemas, OrderBase):
     """
     Schema for reading an order including its associated products and total price.
     """
