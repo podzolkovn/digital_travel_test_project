@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from fastapi import Depends
 
-from app.domain.models.main import Order
+from app.domain.models import Order
 from app.infrastructure.db import get_async_session
 
 if TYPE_CHECKING:
