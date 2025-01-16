@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import HTTPException
-from starlette import status
+from starlette.status import HTTP_400_BAD_REQUEST
 
 from .abstract import AbstractReadSchemas, AbstractWriteUpdateSchemas
 from .product import ProductRead, ProductWrite, ProductUpdate
@@ -22,7 +22,7 @@ class OrderBase(AbstractWriteUpdateSchemas):
     def validate_status(cls, value: str) -> str:
         if value.upper() not in StatusEnum.__members__:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail={
                     "status": f"{value} is not a valid status. Available statuses are: "
                     f"{', '.join(StatusEnum.__members__.keys())}"
@@ -53,7 +53,7 @@ class OrderWrite(OrderBase):
     def validate_products(cls, value: list[dict[str, str]]) -> list[dict[str, str]]:
         if len(value) == 0:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail={"products": "products must not be empty"},
             )
         return value

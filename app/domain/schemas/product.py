@@ -2,7 +2,7 @@ import decimal
 from pydantic import field_validator
 from typing import Optional
 from fastapi import HTTPException
-from starlette import status
+from starlette.status import HTTP_400_BAD_REQUEST
 
 from .abstract import AbstractReadSchemas, AbstractWriteUpdateSchemas
 
@@ -34,7 +34,7 @@ class ProductWrite(ProductBase):
     def validate_quantity(cls, value: int) -> int:
         if value <= 0:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail={"quantity": "Quantity must be greater than zero."},
             )
 
@@ -44,7 +44,7 @@ class ProductWrite(ProductBase):
     def validate_price(cls, value: float) -> float:
         if value <= 0:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=HTTP_400_BAD_REQUEST,
                 detail={"price": "Price must be greater than zero."},
             )
         return value

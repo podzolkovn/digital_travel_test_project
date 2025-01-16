@@ -40,7 +40,11 @@ class OrdersRepository(BaseRepository):
     ) -> Optional[T]:
         stmt = (
             select(self.model)
-            .where(self.model.id == object_id, self.model.user_id == user_id)
+            .where(
+                self.model.id == object_id,
+                self.model.user_id == user_id,
+                self.model.is_deleted is False,
+            )
             .options(selectinload(self.model.products))
         )
         result = await self.session.execute(stmt)

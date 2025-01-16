@@ -1,11 +1,17 @@
-from starlette import status
+from starlette.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+    HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
+)
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
 
 from app.application.managers.order import OrderManager
 from app.domain.dependencies.order import get_order_db
-from app.domain.models.auth import User
 from app.domain.models.order import StatusEnum
 from app.domain.repositories.orders import OrdersRepository
 from app.domain.schemas.order import OrderWrite, OrderRead, OrderUpdate
@@ -27,11 +33,11 @@ router: APIRouter = APIRouter(
         {''.join([f"{key} - {value}, " for key, value in StatusEnum.__members__.items()])}
         """,
     dependencies=[Depends(current_user)],
-    status_code=status.HTTP_201_CREATED,
+    status_code=HTTP_201_CREATED,
     response_description="Successful. The order has been created.",
     response_model=OrderRead,
     responses={
-        status.HTTP_400_BAD_REQUEST: {
+        HTTP_400_BAD_REQUEST: {
             "description": "Bad Request. Return the errors list for each field that is invalid.",
         },
     },
@@ -55,11 +61,11 @@ async def create_orders(
     summary="Get detail of order",
     description=f"""This endpoint retrieves detailed information about an order by id.""",
     dependencies=[Depends(current_user)],
-    status_code=status.HTTP_200_OK,
+    status_code=HTTP_200_OK,
     response_description="Successful. The get order.",
     response_model=OrderRead,
     responses={
-        status.HTTP_404_NOT_FOUND: {
+        HTTP_404_NOT_FOUND: {
             "description": "Resource not found. The requested resource does not exist or is unavailable."
             " Please check the URL or request parameters and try again.",
         },
@@ -79,8 +85,25 @@ async def get_order(
 
 
 @router.delete(
-    "/{order_id}",
-    status_code=status.HTTP_200_OK,
+    path="/{order_id}",
+    summary="Delete order",
+    description=f"""This endpoint deleted order by id.""",
+    dependencies=[Depends(current_super_user)],
+    status_code=HTTP_200_OK,
+    response_description="Successful. The delete order.",
+    response_model=OrderRead,
+    responses={
+        HTTP_401_UNAUTHORIZED: {
+            "description": "Unauthorized access",
+        },
+        HTTP_403_FORBIDDEN: {
+            "description": "Forbidden access",
+        },
+        HTTP_404_NOT_FOUND: {
+            "description": "Resource not found. The requested resource does not exist or is unavailable."
+            " Please check the URL or request parameters and try again.",
+        },
+    },
 )
 async def delete_order(
     order_id: int,
