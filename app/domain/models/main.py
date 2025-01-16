@@ -1,9 +1,15 @@
 import enum
 import decimal
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String, Enum, Integer, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.models.abstract import AbstractModel
+from app.domain.repositories.orders import OrdersRepository
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class StatusEnum(enum.Enum):
@@ -81,6 +87,13 @@ class Order(AbstractModel):
         secondary="order_products",
         back_populates="orders",
     )
+
+    @classmethod
+    def get_db(cls, session: "AsyncSession"):
+        """
+        Returns an OrdersRepository instance for interacting with order data.
+        """
+        return OrdersRepository(session, cls)
 
 
 class OrderProduct(AbstractModel):
