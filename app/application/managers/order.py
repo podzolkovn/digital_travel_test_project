@@ -58,3 +58,25 @@ class OrderManager:
             content=order_read.dict(),
             status_code=status.HTTP_200_OK,
         )
+
+    async def soft_delete(
+        self,
+        pk: int,
+        user: UserRead,
+    ) -> JSONResponse:
+        order: Order = await self.order_repository.get_by_id_by_current_user(
+            pk, user.id
+        )
+        if order is None:
+            logger.info("Order %s not found for user %s", pk, user.id)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"order": f"Not Found by id: {pk}"},
+            )
+
+        await self.order_repository.delete(order)
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"order": f"Order {pk} deleted soft"},
+        )

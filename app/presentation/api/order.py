@@ -10,8 +10,7 @@ from app.domain.models.order import StatusEnum
 from app.domain.repositories.orders import OrdersRepository
 from app.domain.schemas.order import OrderWrite, OrderRead, OrderUpdate
 from app.domain.schemas.user import UserRead
-from app.presentation.api.fastapi_users import current_user
-
+from app.presentation.api.fastapi_users import current_user, current_super_user
 
 router: APIRouter = APIRouter(
     prefix="/orders",
@@ -79,45 +78,47 @@ async def get_order(
     return order_data
 
 
-@router.get(
-    path="",
-    response_model=OrderRead,
-    status_code=status.HTTP_200_OK,
-)
-async def get_orders(user: User = Depends(current_user)) -> Response:
-    return Response(
-        content="Hello World",
-        media_type="application",
-        status_code=status.HTTP_200_OK,
-    )
-
-
-@router.patch(
-    "/{order_id}",
-    response_model=OrderUpdate,
-    status_code=status.HTTP_200_OK,
-)
-async def update_order(
-    order_id: int,
-    user: User = Depends(current_user),
-) -> Response:
-    return Response(
-        content="Hello World",
-        media_type="application",
-        status_code=status.HTTP_200_OK,
-    )
-
-
 @router.delete(
     "/{order_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
 )
 async def delete_order(
     order_id: int,
-    user: User = Depends(current_user),
-) -> Response:
-    return Response(
-        content="Hello World",
-        media_type="application",
-        status_code=status.HTTP_204_NO_CONTENT,
+    user: UserRead = Depends(current_super_user),
+    order_repository: OrdersRepository = Depends(get_order_db),
+) -> JSONResponse:
+    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_data: JSONResponse = await order_manager.soft_delete(
+        order_id,
+        user=user,
     )
+    return order_data
+
+
+# @router.get(
+#     path="",
+#     response_model=OrderRead,
+#     status_code=status.HTTP_200_OK,
+# )
+# async def get_orders(user: User = Depends(current_user)) -> Response:
+#     return Response(
+#         content="Hello World",
+#         media_type="application",
+#         status_code=status.HTTP_200_OK,
+#     )
+#
+#
+# @router.patch(
+#     "/{order_id}",
+#     response_model=OrderUpdate,
+#     status_code=status.HTTP_200_OK,
+# )
+# async def update_order(
+#     order_id: int,
+#     user: User = Depends(current_user),
+# ) -> Response:
+#     return Response(
+#         content="Hello World",
+#         media_type="application",
+#         status_code=status.HTTP_200_OK,
+#     )
