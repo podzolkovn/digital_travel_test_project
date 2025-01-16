@@ -8,7 +8,7 @@ from typing_extensions import Any
 from app.core.logger import LoggerConfig
 from app.domain.models import Order
 from app.domain.repositories.orders import OrdersRepository
-from app.domain.schemas.order import OrderRead
+from app.domain.schemas.order import OrderRead, OrderWrite
 from app.domain.schemas.user import UserRead
 
 dictConfig(LoggerConfig().model_dump())

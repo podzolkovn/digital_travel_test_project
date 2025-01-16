@@ -1,8 +1,13 @@
-import decimal
 from typing import Optional
+
+from fastapi import HTTPException
+from starlette import status
 
 from .abstract import AbstractReadSchemas, AbstractWriteUpdateSchemas
 from .product import ProductRead, ProductWrite, ProductUpdate
+from pydantic import field_validator
+
+from app.domain.models.order import StatusEnum
 
 
 class OrderBase(AbstractWriteUpdateSchemas):
@@ -12,6 +17,18 @@ class OrderBase(AbstractWriteUpdateSchemas):
 
     customer_name: str
     status: str
+
+    @field_validator("status")
+    def validate_status(cls, value: str) -> str:
+        if value.upper() not in StatusEnum.__members__:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "status": f"{value} is not a valid status. Available statuses are: "
+                    f"{', '.join(StatusEnum.__members__.keys())}"
+                },
+            )
+        return value
 
 
 class OrderRead(AbstractReadSchemas, OrderBase):
@@ -31,6 +48,15 @@ class OrderWrite(OrderBase):
     """
 
     products: list[ProductWrite]
+
+    @field_validator("products")
+    def validate_products(cls, value: list[dict[str, str]]) -> list[dict[str, str]]:
+        if len(value) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"products": "products must not be empty"},
+            )
+        return value
 
 
 class OrderUpdate(OrderBase):
