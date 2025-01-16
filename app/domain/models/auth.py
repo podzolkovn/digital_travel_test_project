@@ -1,32 +1,26 @@
 from typing import TYPE_CHECKING
 
 from app.infrastructure.db import Base
-from fastapi_users_db_sqlalchemy import (
-    SQLAlchemyBaseUserTable,
-    SQLAlchemyUserDatabase
-)
+from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 from app.domain.models.abstract import AbstractModel
 from fastapi_users_db_sqlalchemy.access_token import (
     SQLAlchemyBaseAccessTokenTable,
-    SQLAlchemyAccessTokenDatabase
+    SQLAlchemyAccessTokenDatabase,
 )
-from sqlalchemy import (
-    ForeignKey,
-    Integer
-)
-from sqlalchemy.orm import (
-    Mapped,
-    mapped_column
-)
+from sqlalchemy import ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+    from app.domain.models.order import Order
 
 
 class User(AbstractModel, SQLAlchemyBaseUserTable[int]):
     """
     Represents a user with additional role-based property and database utility method.
     """
+
+    orders: Mapped[list["Order"]] = relationship(back_populates="user")
 
     @property
     def role(self) -> str:
@@ -47,6 +41,7 @@ class AccessToken(Base, SQLAlchemyBaseAccessTokenTable[int]):
     """
     Represents an access token associated with a user.
     """
+
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
 
     @classmethod
