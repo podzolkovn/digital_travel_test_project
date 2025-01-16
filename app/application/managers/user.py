@@ -14,6 +14,10 @@ SECRET: str = settings.SECRET_JWT
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
+    """
+    Custom user manager for handling user-related operations and token secrets.
+    """
+
     reset_password_token_secret: str = SECRET
     verification_token_secret: str = SECRET
 
@@ -26,24 +30,3 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             "User %r has registered.",
             user.id,
         )
-
-    # async def on_after_forgot_password(
-    #     self,
-    #     user: User,
-    #     token: str,
-    #     request: Optional[Request] = None,
-    # ):
-    #     logger.info(
-    #         "User %r has forgot their password. Reset token: %r",
-    #         user.id,
-    #         token,
-    #     )
-    #
-    # async def on_after_request_verify(
-    #     self, user: User, token: str, request: Optional[Request] = None
-    # ):
-    #     logger.info(
-    #         "Verification requested for user %r. Verification token: %r",
-    #         user.id,
-    #         token,
-    #     )

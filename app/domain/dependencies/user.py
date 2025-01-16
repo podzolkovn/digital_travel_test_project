@@ -12,10 +12,16 @@ if TYPE_CHECKING:
 async def get_user_db(
     session: "AsyncSession" = Depends(get_async_session),
 ):
+    """
+    Provides a database connection for working with user records.
+    """
     yield User.get_db(session=session)
 
 
 async def get_user_manager(
     user_db=Depends(get_user_db),
 ):
+    """
+    Provides an instance of UserManager for managing user operations.
+    """
     yield UserManager(user_db)

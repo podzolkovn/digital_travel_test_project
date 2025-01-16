@@ -9,4 +9,7 @@ if TYPE_CHECKING:
 
 
 async def get_access_token_db(session: "AsyncSession" = Depends(get_async_session)):
+    """
+    Provides a database connection for working with access tokens.
+    """
     yield AccessToken.get_db(session=session)
