@@ -21,7 +21,7 @@ class OrderRead(AbstractReadSchemas, OrderBase):
 
     id: int
     user_id: int
-    total_price: decimal.Decimal
+    total_price: float
     products: list[ProductRead]
 
 

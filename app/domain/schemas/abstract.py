@@ -9,13 +9,10 @@ class AbstractReadSchemas(BaseModel):
     update timestamp, and deletion status.
     """
 
-    created_at: datetime
-    updated_at: datetime
     is_deleted: bool
 
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+    class Config:
+        from_attributes = True
 
 
 class AbstractWriteUpdateSchemas(BaseModel):
@@ -23,6 +20,5 @@ class AbstractWriteUpdateSchemas(BaseModel):
     Represents a base schema for models with common fields.
     """
 
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+    class Config:
+        from_attributes = True

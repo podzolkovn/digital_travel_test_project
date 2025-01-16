@@ -9,7 +9,7 @@ class ProductBase(AbstractWriteUpdateSchemas):
     """
 
     name: str
-    price: decimal.Decimal
+    price: float
     quantity: int
 
 
