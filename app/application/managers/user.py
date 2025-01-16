@@ -8,14 +8,14 @@ from fastapi import Request
 from fastapi_users import BaseUserManager, IntegerIDMixin
 
 dictConfig(LoggerConfig().model_dump())
-logger = logging.getLogger(__name__)
+logger: logging = logging.getLogger("digital_travel_concierge")
 
-SECRET = settings.SECRET_JWT
+SECRET: str = settings.SECRET_JWT
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
-    reset_password_token_secret = SECRET
-    verification_token_secret = SECRET
+    reset_password_token_secret: str = SECRET
+    verification_token_secret: str = SECRET
 
     async def on_after_register(
         self,
