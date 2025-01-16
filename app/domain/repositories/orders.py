@@ -34,3 +34,14 @@ class OrdersRepository(BaseRepository):
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_by_id_by_current_user(
+        self, object_id: int, user_id: int
+    ) -> Optional[T]:
+        stmt = (
+            select(self.model)
+            .where(self.model.id == object_id, self.model.user_id == user_id)
+            .options(selectinload(self.model.products))
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()

@@ -57,27 +57,39 @@ async def create_orders(
 
 
 @router.get(
+    path="/{order_id}",
+    summary="Get detail of order",
+    description=f"""This endpoint retrieves detailed information about an order by id.""",
+    dependencies=[Depends(current_user)],
+    status_code=status.HTTP_200_OK,
+    response_description="Successful. The get order.",
+    response_model=OrderRead,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Resource not found. The requested resource does not exist or is unavailable."
+            " Please check the URL or request parameters and try again.",
+        },
+    },
+)
+async def get_order(
+    order_id: int,
+    user: UserRead = Depends(current_user),
+    order_repository: OrdersRepository = Depends(get_order_db),
+) -> JSONResponse:
+    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_data: JSONResponse = await order_manager.get_details(
+        order_id,
+        user=user,
+    )
+    return order_data
+
+
+@router.get(
     path="",
     response_model=OrderRead,
     status_code=status.HTTP_200_OK,
 )
 async def get_orders(user: User = Depends(current_user)) -> Response:
-    return Response(
-        content="Hello World",
-        media_type="application",
-        status_code=status.HTTP_200_OK,
-    )
-
-
-@router.get(
-    "/{order_id}",
-    response_model=OrderRead,
-    status_code=status.HTTP_200_OK,
-)
-async def get_order(
-    order_id: int,
-    user: User = Depends(current_user),
-) -> Response:
     return Response(
         content="Hello World",
         media_type="application",
