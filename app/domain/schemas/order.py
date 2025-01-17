@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
 from .abstract import AbstractReadSchemas, AbstractWriteUpdateSchemas
-from .product import ProductRead, ProductWrite, ProductUpdate
+from .product import ProductRead, ProductWrite
 from pydantic import field_validator
 
 from app.domain.models.order import StatusEnum
@@ -64,6 +64,6 @@ class OrderUpdate(OrderBase):
     Schema for updating an order with optional fields and nested product updates.
     """
 
-    user_id: Optional[int]
-    customer_name: Optional[str]
-    status: Optional[str]
+    user_id: Optional[int] = None
+    customer_name: Optional[str] = None
+    status: Optional[str] = None
