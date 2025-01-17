@@ -1,3 +1,5 @@
+from redis import Redis
+from starlette.responses import JSONResponse
 from starlette.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -8,17 +10,18 @@ from starlette.status import (
 )
 
 from fastapi import APIRouter, Depends, Query
-from starlette.responses import JSONResponse
 
 from app.application.managers.order import OrderManager
-from app.application.managers.user import UserManager
 from app.domain.dependencies.order import get_order_db
 from app.domain.dependencies.user import get_user_manager
 from app.domain.models.order import StatusEnum
-from app.domain.repositories.orders import OrdersRepository
-from app.domain.schemas.order import OrderWrite, OrderRead, OrderUpdate
+from app.domain.schemas.order import OrderRead, OrderWrite, OrderUpdate
 from app.domain.schemas.user import UserRead
+from app.domain.repositories.orders import OrdersRepository
+from app.infrastructure.redis import get_redis
+from app.application.managers.user import UserManager
 from app.presentation.api.fastapi_users import current_user, current_super_user
+
 
 router: APIRouter = APIRouter(
     prefix="/orders",
@@ -48,9 +51,12 @@ async def create_orders(
     data: OrderWrite,
     user: UserRead = Depends(current_user),
     order_repository: OrdersRepository = Depends(get_order_db),
+    redis: Redis = Depends(get_redis),
 ) -> JSONResponse:
-
-    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_manager: OrderManager = OrderManager(
+        order_repository=order_repository,
+        redis=redis,
+    )
     order_data: JSONResponse = await order_manager.on_after_create_order(
         data=data.model_dump(),
         user=user,
@@ -77,8 +83,12 @@ async def get_order(
     order_id: int,
     user: UserRead = Depends(current_user),
     order_repository: OrdersRepository = Depends(get_order_db),
+    redis: Redis = Depends(get_redis),
 ) -> JSONResponse:
-    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_manager: OrderManager = OrderManager(
+        order_repository=order_repository,
+        redis=redis,
+    )
     order_data: JSONResponse = await order_manager.get_details(
         order_id,
         user=user,
@@ -111,8 +121,12 @@ async def delete_order(
     order_id: int,
     user: UserRead = Depends(current_super_user),
     order_repository: OrdersRepository = Depends(get_order_db),
+    redis: Redis = Depends(get_redis),
 ) -> JSONResponse:
-    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_manager: OrderManager = OrderManager(
+        order_repository=order_repository,
+        redis=redis,
+    )
     order_data: JSONResponse = await order_manager.soft_delete(
         order_id,
         user=user,
@@ -155,8 +169,12 @@ async def get_orders(
     ),
     user: UserRead = Depends(current_user),
     order_repository: OrdersRepository = Depends(get_order_db),
+    redis: Redis = Depends(get_redis),
 ) -> JSONResponse:
-    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_manager: OrderManager = OrderManager(
+        order_repository=order_repository,
+        redis=redis,
+    )
     orders_data: JSONResponse = await order_manager.filter_orders(
         user=user,
         filters={
@@ -201,8 +219,12 @@ async def update_order(
     user: UserRead = Depends(current_user),
     order_repository: OrdersRepository = Depends(get_order_db),
     user_manager: UserManager = Depends(get_user_manager),
+    redis: Redis = Depends(get_redis),
 ) -> JSONResponse:
-    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    order_manager: OrderManager = OrderManager(
+        order_repository=order_repository,
+        redis=redis,
+    )
     orders_data: JSONResponse = await order_manager.on_after_update(
         pk=order_id,
         user=user,

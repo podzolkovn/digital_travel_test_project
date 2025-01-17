@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     """
     Configuration class for application settings, including database and JWT secrets, loaded from environment variables.
     """
+
     DB_HOST: str
     DB_PORT: int
     DB_USER: str
@@ -17,6 +18,9 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
+
+    REDIS_PORT: int
+    REDIS_HOST: str
 
     PORT: int
 

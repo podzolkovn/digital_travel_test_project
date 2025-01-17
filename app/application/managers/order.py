@@ -1,6 +1,9 @@
-from logging.config import dictConfig
+import json
 import logging
+from logging.config import dictConfig
+
 from typing import TYPE_CHECKING, Optional
+
 
 from starlette.status import (
     HTTP_200_OK,
@@ -30,6 +33,18 @@ class OrderManager(OrderMixin):
     environment.
     """
 
+    async def cache_order(self, order_id: int, data: dict[Any, Any]):
+        await self._redis.set(f"order:{order_id}", json.dumps(data))
+
+    async def get_cached_order(self, order_id: int):
+        data_str = await self._redis.get(f"order:{order_id}")
+        if data_str:
+            return json.loads(data_str)
+        return None
+
+    async def delete_cached_order(self, order_id: int):
+        await self._redis.delete(f"order:{order_id}")
+
     async def on_after_create_order(
         self,
         data: dict[Any, Any],
@@ -45,6 +60,9 @@ class OrderManager(OrderMixin):
 
         order: "Order" = await self.order_repository.create(data)
         order_read: OrderRead = OrderRead.model_validate(order)
+
+        await self.cache_order(order.id, order_read.dict())
+
         logger.info("Order created successfully by id %s", order.id)
 
         return JSONResponse(
@@ -61,10 +79,16 @@ class OrderManager(OrderMixin):
         Retrieves the details of an order based on its primary key (pk).
         The order is validated and returned as a JSON response with a 200 OK status.
         """
-        order: "Order" = await self.get_order_or_404(pk, user)
-        order_read: OrderRead = OrderRead.model_validate(order)
+        cached_order = await self.get_cached_order(pk)
+        if cached_order:
+            order_read = OrderRead.model_validate(cached_order)
+            logger.info("Order %s retrieved from cache", pk)
+        else:
+            order: "Order" = await self.get_order_or_404(pk, user)
+            order_read: OrderRead = OrderRead.model_validate(order)
+            await self.cache_order(order.id, order_read.dict())
+            logger.info("Order %s founded successfully by id %s", pk, order.id)
 
-        logger.info("Order %s founded successfully by id %s", pk, order.id)
         return JSONResponse(
             content=order_read.dict(),
             status_code=HTTP_200_OK,
@@ -82,6 +106,7 @@ class OrderManager(OrderMixin):
         """
         order: "Order" = await self.get_order_or_404(pk, user)
         await self.order_repository.delete(order)
+        await self.delete_cached_order(pk)
         logger.info("Order %r deleted soft", pk)
         return JSONResponse(
             status_code=HTTP_200_OK,
@@ -133,6 +158,7 @@ class OrderManager(OrderMixin):
 
         order_update: "Order" = await self.order_repository.update(order, data)
         order_read: OrderRead = OrderRead.model_validate(order_update)
+        await self.cache_order(order_update.id, order_read.dict())
         logger.info("Order update: %s", order_read)
         return JSONResponse(
             status_code=HTTP_200_OK,

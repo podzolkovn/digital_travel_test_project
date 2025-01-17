@@ -11,11 +11,11 @@ from starlette.status import (
 
 from app.core.logger import LoggerConfig
 from app.domain.models.order import StatusEnum
-
-from app.domain.repositories.orders import OrdersRepository
-
+from app.infrastructure.redis import get_redis
 
 if TYPE_CHECKING:
+    from app.domain.repositories.orders import OrdersRepository
+    from aioredis import Redis
     from app.application.managers.user import UserManager
     from app.domain.schemas.user import UserRead
     from app.domain.models import Order
@@ -30,8 +30,9 @@ class OrderMixin:
     retrieving, validating, and filtering orders based on user permissions and data.
     """
 
-    def __init__(self, order_repository: OrdersRepository) -> None:
+    def __init__(self, order_repository: "OrdersRepository", redis: "Redis") -> None:
         self.order_repository = order_repository
+        self._redis = redis
 
     async def get_order_or_404(self, pk: int, user: "UserRead") -> "Order":
         """
