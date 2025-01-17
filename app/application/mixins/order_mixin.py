@@ -27,9 +27,13 @@ class OrderMixin:
         """
         Retrieve an order by its ID and the current user. If not found, raise HTTP 404.
         """
-        order: "Order" = await self.order_repository.get_by_id_by_current_user(
-            pk, user.id
-        )
+
+        if user.is_superuser:
+            order: "Order" = await self.order_repository.get_by_id_by_current_user(pk)
+        else:
+            order: "Order" = await self.order_repository.get_by_id_by_current_user(
+                pk, user.id
+            )
         if order is None:
             logger.info("Order %s not found for user %s", pk, user.id)
             raise HTTPException(
