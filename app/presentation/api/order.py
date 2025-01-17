@@ -120,8 +120,23 @@ async def delete_order(
 
 @router.get(
     path="",
-    response_model=list[OrderRead],
+    summary="Get list orders",
+    description=f"""This endpoint get list orders.
+        Options:
+            {''.join([f"{key} - {value}, " for key, value in StatusEnum.__members__.items()])}
+        """,
+    dependencies=[Depends(current_user)],
     status_code=HTTP_200_OK,
+    response_description="Successful. The get list orders.",
+    response_model=list[OrderRead],
+    responses={
+        HTTP_400_BAD_REQUEST: {
+            "description": "Bad Request. Return the errors list for each field that is invalid.",
+        },
+        HTTP_401_UNAUTHORIZED: {
+            "description": "Unauthorized access",
+        },
+    },
 )
 async def get_orders(
     status: str | None = Query(
