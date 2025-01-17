@@ -11,7 +11,9 @@ from fastapi import APIRouter, Depends, Query
 from starlette.responses import JSONResponse
 
 from app.application.managers.order import OrderManager
+from app.application.managers.user import UserManager
 from app.domain.dependencies.order import get_order_db
+from app.domain.dependencies.user import get_user_manager
 from app.domain.models.order import StatusEnum
 from app.domain.repositories.orders import OrdersRepository
 from app.domain.schemas.order import OrderWrite, OrderRead, OrderUpdate
@@ -166,19 +168,42 @@ async def get_orders(
     return orders_data
 
 
-#
-#
-# @router.patch(
-#     "/{order_id}",
-#     response_model=OrderUpdate,
-#     status_code=status.HTTP_200_OK,
-# )
-# async def update_order(
-#     order_id: int,
-#     user: User = Depends(current_user),
-# ) -> Response:
-#     return Response(
-#         content="Hello World",
-#         media_type="application",
-#         status_code=status.HTTP_200_OK,
-#     )
+@router.patch(
+    path="/{order_id}",
+    summary="Update order",
+    description=f"""This endpoint responsibility for updated order.
+        Options:
+            {''.join([f"{key} - {value}, " for key, value in StatusEnum.__members__.items()])}
+        """,
+    dependencies=[Depends(current_user)],
+    status_code=HTTP_200_OK,
+    response_description="Successful. The updated order.",
+    response_model=OrderRead,
+    responses={
+        HTTP_400_BAD_REQUEST: {
+            "description": "Bad Request. Return the errors list for each field that is invalid.",
+        },
+        HTTP_401_UNAUTHORIZED: {
+            "description": "Unauthorized access",
+        },
+        HTTP_404_NOT_FOUND: {
+            "description": "Resource not found. The requested resource does not exist or is unavailable."
+            " Please check the URL or request parameters and try again.",
+        },
+    },
+)
+async def update_order(
+    order_id: int,
+    data: OrderUpdate,
+    user: UserRead = Depends(current_user),
+    order_repository: OrdersRepository = Depends(get_order_db),
+    user_manager: UserManager = Depends(get_user_manager),
+) -> JSONResponse:
+    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    orders_data: JSONResponse = await order_manager.on_after_update(
+        pk=order_id,
+        user=user,
+        data=data.dict(exclude_unset=True),
+        user_manager=user_manager,
+    )
+    return orders_data
