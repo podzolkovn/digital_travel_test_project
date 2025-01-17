@@ -64,6 +64,10 @@ class OrderMixin:
         max_price: Optional[int] = filters.get("max_price", None)
 
         if status is not None and status.upper() not in StatusEnum.__members__:
+            logger.info(
+                "Invalid choice for status: %s",
+                status.upper(),
+            )
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={
@@ -73,6 +77,11 @@ class OrderMixin:
             )
 
         if min_price is not None and max_price is not None and min_price > max_price:
+            logger.info(
+                "%r > %r The minimum price cannot be greater than the maximum price.",
+                min_price,
+                max_price,
+            )
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={
@@ -94,6 +103,9 @@ class OrderMixin:
         Checks if the data is empty or if unauthorized modifications are attempted on specific fields.
         """
         if len(data) == 0:
+            logger.info(
+                "Length == 0 for order. The request body cannot be empty. Please provide valid data."
+            )
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={
@@ -103,6 +115,10 @@ class OrderMixin:
 
         user_id: Optional[int] = data.get("user_id", None)
         if user_id and not user.is_superuser:
+            logger.info(
+                "User %r do not have permission to modify the user_id field.",
+                user_id,
+            )
             raise HTTPException(
                 status_code=HTTP_403_FORBIDDEN,
                 detail={
