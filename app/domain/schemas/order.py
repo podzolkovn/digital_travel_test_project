@@ -25,7 +25,8 @@ class OrderBase(AbstractWriteUpdateSchemas):
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={
                     "status": f"{value} is not a valid status. Available statuses are: "
-                    f"{', '.join(StatusEnum.__members__.keys())}"
+                    f"{', '.join(StatusEnum.__members__.keys())}",
+                    "code": "invalid_choice",
                 },
             )
         return value
@@ -54,7 +55,7 @@ class OrderWrite(OrderBase):
         if len(value) == 0:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
-                detail={"products": "products must not be empty"},
+                detail={"products": "products must not be empty", "code": "null"},
             )
         return value
 

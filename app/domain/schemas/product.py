@@ -35,7 +35,10 @@ class ProductWrite(ProductBase):
         if value <= 0:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
-                detail={"quantity": "Quantity must be greater than zero."},
+                detail={
+                    "quantity": "Quantity must be greater than zero.",
+                    "code": "negative_or_zero",
+                },
             )
 
         return value
@@ -45,6 +48,9 @@ class ProductWrite(ProductBase):
         if value <= 0:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
-                detail={"price": "Price must be greater than zero."},
+                detail={
+                    "price": "Price must be greater than zero.",
+                    "code": "negative_or_zero",
+                },
             )
         return value

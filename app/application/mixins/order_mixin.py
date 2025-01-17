@@ -49,7 +49,10 @@ class OrderMixin:
             logger.info("Order %s not found for user %s", pk, user.id)
             raise HTTPException(
                 status_code=HTTP_404_NOT_FOUND,
-                detail={"order": f"Not Found by id: {pk}"},
+                detail={
+                    "order": f"Not Found by id: {pk}",
+                    "code": "not_found",
+                },
             )
         return order
 
@@ -72,7 +75,8 @@ class OrderMixin:
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={
                     "status": f"{status} is not a valid status. Available statuses are: "
-                    f"{', '.join(StatusEnum.__members__.keys())}"
+                    f"{', '.join(StatusEnum.__members__.keys())}",
+                    "code": "invalid_choice",
                 },
             )
 
@@ -86,6 +90,7 @@ class OrderMixin:
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={
                     "error": "The minimum price cannot be greater than the maximum price.",
+                    "code": "invalid_price_range",
                 },
             )
 
@@ -109,7 +114,8 @@ class OrderMixin:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={
-                    "body": "The request body cannot be empty. Please provide valid data.",
+                    "error": "The request body cannot be empty. Please provide valid data.",
+                    "code": "null",
                 },
             )
 

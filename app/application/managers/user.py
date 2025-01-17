@@ -38,7 +38,10 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             logger.info("User %r does not exist.", id)
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
-                detail={"user_id": f"User {id} does not exist."},
+                detail={
+                    "user_id": f"User {id} does not exist.",
+                    "code": "does_not_exist",
+                },
             )
 
         return user
