@@ -48,13 +48,3 @@ class ProductWrite(ProductBase):
                 detail={"price": "Price must be greater than zero."},
             )
         return value
-
-
-class ProductUpdate(ProductBase):
-    """
-    Schema for updating product details with optional fields for name, price, and quantity.
-    """
-
-    name: Optional[str]
-    price: Optional[decimal.Decimal]
-    quantity: Optional[int]

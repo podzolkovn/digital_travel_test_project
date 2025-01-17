@@ -67,4 +67,3 @@ class OrderUpdate(OrderBase):
     user_id: Optional[int]
     customer_name: Optional[str]
     status: Optional[str]
-    products: Optional[list[ProductUpdate]]
