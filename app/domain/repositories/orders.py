@@ -14,6 +14,9 @@ class OrdersRepository(BaseRepository):
         from app.domain.models.product import Product
 
         products_data: list[dict[str, Any]] = obj_data.pop("products")
+        obj_data["total_price"] = sum(
+            product["price"] * product["quantity"] for product in products_data
+        )
 
         order: T = self.model(**obj_data)
         self.session.add(order)
