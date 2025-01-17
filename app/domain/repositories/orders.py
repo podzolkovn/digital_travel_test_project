@@ -10,7 +10,18 @@ T = TypeVar("T")
 
 
 class OrdersRepository(BaseRepository):
+    """
+    A repository class for managing CRUD operations on Order objects in the database.
+    Provides methods for creating, retrieving, and filtering orders, along with handling
+    relationships and transactions.
+    """
+
     async def create(self, obj_data: dict[Any, Any]) -> T:
+        """
+        Creates a new order from the provided data, including associated product details.
+        Calculates the total price based on product prices and quantities.
+        Commits the transaction to the database and returns the created order with product details.
+        """
         from app.domain.models.product import Product
 
         products_data: list[dict[str, Any]] = obj_data.pop("products")
@@ -45,7 +56,10 @@ class OrdersRepository(BaseRepository):
         object_id: int,
         user_id: Optional[int] = None,
     ) -> Optional[T]:
-
+        """
+        Retrieves an order by its ID, optionally filtered by the user ID.
+        Ensures that only non-deleted orders are fetched.
+        """
         conditions: list[Any] = []
         if user_id is not None:
             conditions.append(self.model.user_id == user_id)
@@ -65,7 +79,10 @@ class OrdersRepository(BaseRepository):
         self,
         filters: dict[str, Optional[Any]],
     ) -> list[T]:
-
+        """
+        Retrieves orders based on the provided filters, or returns all non-deleted orders if no filters are given.
+        Supports filtering by status, price range, and user ID. Includes related products in the result.
+        """
         conditions: list[Any] = []
         if "status" in filters and filters["status"] is not None:
             conditions.append(self.model.status == filters["status"])

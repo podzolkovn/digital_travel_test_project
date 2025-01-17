@@ -35,6 +35,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         user = await self.user_db.get(id)
 
         if user is None:
+            logger.info("User %r does not exist.", id)
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={"user_id": f"User {id} does not exist."},

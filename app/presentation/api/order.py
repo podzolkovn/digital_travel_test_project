@@ -186,6 +186,9 @@ async def get_orders(
         HTTP_401_UNAUTHORIZED: {
             "description": "Unauthorized access",
         },
+        HTTP_403_FORBIDDEN: {
+            "description": "Forbidden access",
+        },
         HTTP_404_NOT_FOUND: {
             "description": "Resource not found. The requested resource does not exist or is unavailable."
             " Please check the URL or request parameters and try again.",

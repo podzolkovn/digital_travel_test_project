@@ -23,12 +23,24 @@ logger: logging = logging.getLogger("digital_travel_concierge")
 
 
 class OrderManager(OrderMixin):
+    """
+    Manages operations related to orders, including creation, retrieval,
+    updating, and deletion of orders. This class extends the OrderMixin
+    to provide additional functionalities for handling orders in an asynchronous
+    environment.
+    """
 
     async def on_after_create_order(
         self,
         data: dict[Any, Any],
         user: UserRead,
     ) -> JSONResponse:
+        """
+        Creates a new order using the provided data and associates it with the given user.
+        Once the order is created, it is validated and returned as a JSON response with
+        a 201 Created status.
+        """
+
         data["user_id"] = user.id
 
         order: "Order" = await self.order_repository.create(data)
@@ -45,6 +57,10 @@ class OrderManager(OrderMixin):
         pk: int,
         user: UserRead,
     ) -> JSONResponse:
+        """
+        Retrieves the details of an order based on its primary key (pk).
+        The order is validated and returned as a JSON response with a 200 OK status.
+        """
         order: "Order" = await self.get_order_or_404(pk, user)
         order_read: OrderRead = OrderRead.model_validate(order)
 
@@ -59,9 +75,14 @@ class OrderManager(OrderMixin):
         pk: int,
         user: UserRead,
     ) -> JSONResponse:
+        """
+        Soft deletes an order based on its primary key (pk). This means the order is
+        logically removed from the system but can be recovered if needed.
+        The function returns a JSON response with a 200 OK status.
+        """
         order: "Order" = await self.get_order_or_404(pk, user)
         await self.order_repository.delete(order)
-
+        logger.info("Order %r deleted soft", pk)
         return JSONResponse(
             status_code=HTTP_200_OK,
             content={"order": f"Order {pk} deleted soft"},
@@ -72,6 +93,11 @@ class OrderManager(OrderMixin):
         user: UserRead,
         filters: dict[str, Any],
     ) -> JSONResponse:
+        """
+        Filters orders based on the provided criteria and retrieves them from
+        the database. Each filtered order is validated and returned as a list
+        of dictionaries in a JSON response with a 200 OK status.
+        """
         await self.check_filters(user, filters)
         orders: list["Order"] = await self.order_repository.get_by_filter_or_get_all(
             filters=filters
@@ -79,7 +105,11 @@ class OrderManager(OrderMixin):
         orders_data: Optional[list[dict[Any, Any]]] = [
             OrderRead.model_validate(order).dict() for order in orders
         ]
-
+        logger.info(
+            "Orders data: IDs: %s, Total Count: %d",
+            [order.id for order in orders],
+            len(orders),
+        )
         return JSONResponse(
             status_code=HTTP_200_OK,
             content=orders_data,
@@ -92,12 +122,18 @@ class OrderManager(OrderMixin):
         data: dict[Any, Any],
         user_manager: "UserManager",
     ) -> JSONResponse:
+        """
+        Updates an existing order identified by its primary key (pk) with the
+        provided data. After validation and successful update, the updated order
+        is returned as a JSON response with a 200 OK status.
+        """
         order: "Order" = await self.get_order_or_404(pk, user)
 
         await self.validate_data_for_update(user, data, user_manager)
 
         order_update: "Order" = await self.order_repository.update(order, data)
         order_read: OrderRead = OrderRead.model_validate(order_update)
+        logger.info("Order update: %s", order_read)
         return JSONResponse(
             status_code=HTTP_200_OK,
             content=order_read.dict(),

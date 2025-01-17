@@ -25,14 +25,20 @@ logger: logging = logging.getLogger("digital_travel_concierge")
 
 
 class OrderMixin:
+    """
+    A mixin class that provides utility methods for managing orders, including
+    retrieving, validating, and filtering orders based on user permissions and data.
+    """
+
     def __init__(self, order_repository: OrdersRepository) -> None:
         self.order_repository = order_repository
 
     async def get_order_or_404(self, pk: int, user: "UserRead") -> "Order":
         """
-        Retrieve an order by its ID and the current user. If not found, raise HTTP 404.
+        Retrieves an order by its ID and checks if the order belongs to the current user.
+        If the order is not found, raises a 404 HTTP exception.
+        Superusers are allowed to access any order by ID.
         """
-
         if user.is_superuser:
             order: "Order" = await self.order_repository.get_by_id_by_current_user(pk)
         else:
@@ -48,6 +54,11 @@ class OrderMixin:
         return order
 
     async def check_filters(self, user: "UserRead", filters: dict[Any, Any]) -> None:
+        """
+        Validates the provided filters for orders, checking status and price ranges.
+        Raises HTTP exceptions for invalid filters. If the user is not a superuser,
+        adds the user ID to the filters.
+        """
         status: Optional[str] = filters.get("status", None)
         min_price: Optional[int] = filters.get("min_price", None)
         max_price: Optional[int] = filters.get("max_price", None)
@@ -78,6 +89,10 @@ class OrderMixin:
         data: dict[Any, Any],
         user_manager: "UserManager",
     ):
+        """
+        Validates the data provided for updating an order.
+        Checks if the data is empty or if unauthorized modifications are attempted on specific fields.
+        """
         if len(data) == 0:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
