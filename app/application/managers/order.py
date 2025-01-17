@@ -1,6 +1,6 @@
 from logging.config import dictConfig
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 from starlette.responses import JSONResponse
@@ -61,4 +61,22 @@ class OrderManager(OrderMixin):
         return JSONResponse(
             status_code=HTTP_200_OK,
             content={"order": f"Order {pk} deleted soft"},
+        )
+
+    async def filter_orders(
+        self,
+        user: UserRead,
+        filters: dict[str, Any],
+    ) -> JSONResponse:
+        await self.check_filters(user, filters)
+        orders: list["Order"] = await self.order_repository.get_by_filter_or_get_all(
+            filters=filters
+        )
+        orders_data: Optional[list[dict[Any, Any]]] = [
+            OrderRead.model_validate(order).dict() for order in orders
+        ]
+
+        return JSONResponse(
+            status_code=HTTP_200_OK,
+            content=orders_data,
         )

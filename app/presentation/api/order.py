@@ -7,7 +7,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
 )
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from starlette.responses import JSONResponse
 
 from app.application.managers.order import OrderManager
@@ -118,17 +118,39 @@ async def delete_order(
     return order_data
 
 
-# @router.get(
-#     path="",
-#     response_model=OrderRead,
-#     status_code=status.HTTP_200_OK,
-# )
-# async def get_orders(user: User = Depends(current_user)) -> Response:
-#     return Response(
-#         content="Hello World",
-#         media_type="application",
-#         status_code=status.HTTP_200_OK,
-#     )
+@router.get(
+    path="",
+    response_model=list[OrderRead],
+    status_code=HTTP_200_OK,
+)
+async def get_orders(
+    status: str | None = Query(
+        default=None,
+        description="Filter by order status",
+    ),
+    min_price: float | None = Query(
+        default=None,
+        description="Filter by minimum price",
+    ),
+    max_price: float | None = Query(
+        default=None,
+        description="Filter by maximum price",
+    ),
+    user: UserRead = Depends(current_user),
+    order_repository: OrdersRepository = Depends(get_order_db),
+) -> JSONResponse:
+    order_manager: OrderManager = OrderManager(order_repository=order_repository)
+    orders_data: JSONResponse = await order_manager.filter_orders(
+        user=user,
+        filters={
+            "status": status,
+            "min_price": min_price,
+            "max_price": max_price,
+        },
+    )
+    return orders_data
+
+
 #
 #
 # @router.patch(
