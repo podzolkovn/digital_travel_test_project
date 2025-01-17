@@ -1,6 +1,6 @@
-from typing import Any, TypeVar, Optional, Type
+from typing import Any, TypeVar, Optional
 
-from sqlalchemy import select, and_, Result, Select, ScalarResult
+from sqlalchemy import select, Result, Select, ScalarResult
 from sqlalchemy.orm import selectinload
 
 from .abstract import BaseRepository
@@ -41,15 +41,21 @@ class OrdersRepository(BaseRepository):
         return result.scalar_one_or_none()
 
     async def get_by_id_by_current_user(
-        self, object_id: int, user_id: int
+        self,
+        object_id: int,
+        user_id: Optional[int] = None,
     ) -> Optional[T]:
+
+        conditions: list[Any] = []
+        if user_id is not None:
+            conditions.append(self.model.user_id == user_id)
+
+        conditions.append(self.model.id == object_id)
+        conditions.append(self.model.is_deleted == False)
+
         stmt: Select = (
             select(self.model)
-            .where(
-                self.model.id == object_id,
-                self.model.user_id == user_id,
-                self.model.is_deleted is False,
-            )
+            .where(*conditions)
             .options(selectinload(self.model.products))
         )
         result: Result = await self.session.execute(stmt)
@@ -70,11 +76,11 @@ class OrdersRepository(BaseRepository):
         if "user_id" in filters and filters["user_id"] is not None:
             conditions.append(self.model.user_id == filters["user_id"])
 
-        conditions.append(self.model.is_deleted is False)
+        conditions.append(self.model.is_deleted == False)
 
         stmt: Select = (
             select(self.model)
-            .where(and_(*conditions))
+            .where(*conditions)
             .options(selectinload(self.model.products))
         )
         result: ScalarResult[T] = await self.session.scalars(stmt)
