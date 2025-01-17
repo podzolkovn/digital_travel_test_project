@@ -2,25 +2,21 @@ from logging.config import dictConfig
 import logging
 from typing import TYPE_CHECKING, Optional
 
-from fastapi import HTTPException, Depends
 from starlette.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
-    HTTP_400_BAD_REQUEST,
-    HTTP_403_FORBIDDEN,
 )
 from starlette.responses import JSONResponse
 from typing_extensions import Any
 
-from app.application.managers.user import UserManager
 from app.application.mixins.order_mixin import OrderMixin
 from app.core.logger import LoggerConfig
-from app.domain.dependencies.user import get_user_manager
 from app.domain.schemas.order import OrderRead
 from app.domain.schemas.user import UserRead
 
 if TYPE_CHECKING:
-    from app.domain.models import Order, User
+    from app.domain.models import Order
+    from app.application.managers.user import UserManager
 
 dictConfig(LoggerConfig().model_dump())
 logger: logging = logging.getLogger("digital_travel_concierge")
@@ -94,28 +90,11 @@ class OrderManager(OrderMixin):
         pk: int,
         user: UserRead,
         data: dict[Any, Any],
-        user_manager: UserManager,
+        user_manager: "UserManager",
     ) -> JSONResponse:
         order: "Order" = await self.get_order_or_404(pk, user)
 
-        if len(data) == 0:
-            raise HTTPException(
-                status_code=HTTP_400_BAD_REQUEST,
-                detail={
-                    "body": "The request body cannot be empty. Please provide valid data.",
-                },
-            )
-
-        user_id: Optional[int] = data.get("user_id", None)
-        if user_id and not user.is_superuser:
-            raise HTTPException(
-                status_code=HTTP_403_FORBIDDEN,
-                detail={
-                    "user_id": "You do not have permission to modify the user_id field.",
-                },
-            )
-        if user_id and user.is_superuser:
-            await user_manager.get(user_id)
+        await self.validate_data_for_update(user, data, user_manager)
 
         order_update: "Order" = await self.order_repository.update(order, data)
         order_read: OrderRead = OrderRead.model_validate(order_update)
