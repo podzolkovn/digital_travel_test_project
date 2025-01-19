@@ -1,9 +1,11 @@
-from typing import Any, AsyncGenerator, Generator
+from random import choice, randint
+from typing import Any, AsyncGenerator, Generator, Optional
 import pytest_asyncio
 from fakeredis.aioredis import FakeRedis
 from httpx import AsyncClient, ASGITransport, Response
 from sqlalchemy import select, Result
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import selectinload
 from starlette.status import HTTP_201_CREATED, HTTP_200_OK
 
 from app.domain.models import *  # noqa
@@ -91,6 +93,54 @@ async def user_data(test_hash) -> dict[str, str]:
     }
 
 
+@pytest_asyncio.fixture(scope="function")
+async def get_random_status() -> str:
+    """Provide a random status for test functions"""
+    return choice([status for status in StatusEnum.__members__.keys()])
+
+
+@pytest_asyncio.fixture(scope="function")
+async def generate_random_price() -> int:
+    """
+    Generate a random integer between 50 and 200.
+    """
+    return randint(50, 200)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def generate_random_quantity() -> int:
+    """
+    Generate a random integer between 50 and 200.
+    """
+    return randint(1, 10)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def order_data(
+    test_hash,
+    get_random_status,
+    generate_random_price,
+    generate_random_quantity,
+) -> dict[str, Any]:
+    """Provide a dictionary of order data for test functions"""
+    return {
+        "customer_name": "Test customer",
+        "status": get_random_status,
+        "products": [
+            {
+                "name": "product1",
+                "price": generate_random_price,
+                "quantity": generate_random_quantity,
+            },
+            {
+                "name": "product2",
+                "price": generate_random_price,
+                "quantity": generate_random_quantity,
+            },
+        ],
+    }
+
+
 @pytest_asyncio.fixture
 async def create_user(
     async_client: AsyncClient,
@@ -143,3 +193,40 @@ async def login_user(
     async_client.headers.update({"Authorization": f"Bearer {token}"})
 
     return async_client, user
+
+
+@pytest_asyncio.fixture
+async def create_order(
+    order_data: dict[str, Any],
+    login_user: tuple[AsyncClient, User],
+    get_test_session: AsyncSession,
+):
+    """Create an order in the test database."""
+
+    async def _setup(
+        async_client: AsyncClient,
+        customer_name: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> Order:
+
+        order_data["customer_name"] = customer_name or order_data["customer_name"]
+        order_data["status"] = status or order_data["status"]
+
+        response: Response = await async_client.post(
+            url="/orders",
+            json=order_data,
+        )
+
+        assert response.status_code == HTTP_201_CREATED
+
+        async with get_test_session as session:
+            result_order: Result = await session.execute(
+                select(Order)
+                .filter_by(id=response.json()["id"])
+                .options(selectinload(Order.products))
+            )
+            order: Order = result_order.scalars().first()
+
+        return order
+
+    return _setup
