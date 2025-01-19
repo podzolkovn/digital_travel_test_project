@@ -32,5 +32,4 @@ services:
 
 volumes:
   db_volume:
-  db_test_volume:
   redis_volume:
