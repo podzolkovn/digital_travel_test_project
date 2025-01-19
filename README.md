@@ -1,4 +1,4 @@
-```markdown
+
 # Тестовое задание 
 
 ## Описание
@@ -18,46 +18,44 @@
 ### Шаги установки
 
 1. Склонируйте репозиторий:
-    ```bash
+    ```sh
     git clone https://github.com/podzolkovn/digital_travel_test_project
     ```
 2. Перейдите в директорию проекта:
-    ```bash
+    ```sh
     cd digital_travel_test_project
     ```
 3. Создать виртуальное окружение:
-    ```bash
+    ```sh
     python -m venv venv
     ```
 4. Активировать виртуальное окружение:
-    ```bash
+    ```sh
     ./venv/Script/activate
     ```
 5. Установить зависимости:
-    ```bash
+    ```sh
     pip3 instasll -r reqs.txt
     ```
     
 ## Подготовка к запуску
 1. Запустить докер компоус:
-    ```bash
+    ```sh
     docker compose up -d --build
     ```
 2. Прогнать миграции:
-    ```bash
+    ```sh
     alembic upgrade head
     ```
 ## Тестирование
 2. Прогнать миграции:
-    ```bash
+    ```sh
     pytest
     ```
 ## Запуск проекта
 
 1. Запустите локальный сервер:
-    ```bash
+    ```sh
     uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ```
 2. Откройте браузер и перейдите по адресу `http://localhost:8000/docs`
-
-```
