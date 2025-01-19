@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   db:
     container_name: test_project_db
@@ -15,26 +16,6 @@ services:
       - redis
     volumes:
       - db_volume:/var/lib/postgresql/data
-
-  db_test:
-    container_name: test_project_db_test
-    image: postgres
-    environment:
-      POSTGRES_DB: postgres_test
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - '5433:5432'
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      - redis
-    volumes:
-      - db_test_volume:/var/lib/postgresql/data
-
 
   redis:
     container_name: test_project_redis

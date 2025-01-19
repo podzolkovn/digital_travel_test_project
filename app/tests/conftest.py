@@ -1,22 +1,48 @@
-import pytest
-from app.core.config import settings
-from app.infrastructure.db import engine, Base
-from app.domain.models.auth import User
+from typing import Any, AsyncGenerator, Generator
+import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from app.domain.models import *  # noqa
+from app.infrastructure.db import Base, get_async_session
+from app.main import app
+
+engine = create_async_engine(
+    "sqlite+aiosqlite:///./test.db",
+    connect_args={"check_same_thread": False},
+    echo=True,
+)
+
+TestingSessionLocal = async_sessionmaker(
+    expire_on_commit=False, autocommit=False, autoflush=False, bind=engine
+)
 
 
-@pytest.fixture(autouse=True)
-async def setup_db() -> None:
-    """
-    This is a pytest fixture that sets up and tears down the database schema before and after each test,
-    ensuring the environment is reset to a clean state.
-    """
-    assert settings.MODE == "TEST"
-
+@pytest_asyncio.fixture(autouse=True)
+async def init_db() -> AsyncGenerator[None, Any]:
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-
     yield
-
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+async def override_get_async_session() -> Generator[AsyncSession, Any, None]:
+    async with TestingSessionLocal() as session:
+        yield session
+
+
+app.dependency_overrides[get_async_session] = override_get_async_session
+
+
+@pytest_asyncio.fixture
+async def get_test_session() -> Generator[AsyncSession, Any, None]:
+    async for session in override_get_async_session():
+        yield session
+
+
+@pytest_asyncio.fixture
+async def async_client() -> Generator[AsyncClient, Any, None]:
+    async with AsyncClient(
+        base_url="http://testserver", transport=ASGITransport(app=app)
+    ) as ac:
+        yield ac
