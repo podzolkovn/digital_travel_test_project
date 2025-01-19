@@ -33,9 +33,19 @@
     ```sh
     ./venv/Script/activate
     ```
-5. Установить зависимости:
+
+    Если Windows:
     ```sh
-    pip3 instasll -r reqs.txt
+    .\venv\Scripts\activate
+    ```
+    Если macOS / Linux:
+    ```sh
+    source venv/bin/activate
+    ```
+    
+6. Установить зависимости:
+    ```sh
+    pip3 install -r reqs.txt
     ```
     
 ## Подготовка к запуску
