@@ -82,7 +82,7 @@ def test_hash(request) -> str:
     return str(abs(hash(test_name)))
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def user_data(test_hash) -> dict[str, str]:
     """Provide a dictionary of user data for test functions"""
     return {
@@ -110,6 +110,8 @@ async def create_user(
             select(User).filter_by(id=response.json()["id"])
         )
         user: User = result.scalars().first()
+        user.is_superuser = True
+        await session.commit()
 
     return user
 

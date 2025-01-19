@@ -20,7 +20,8 @@ class OrderBase(AbstractWriteUpdateSchemas):
 
     @field_validator("status")
     def validate_status(cls, value: str) -> str:
-        if value.upper() not in StatusEnum.__members__:
+        value: str = value.upper()
+        if value not in StatusEnum.__members__:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail={

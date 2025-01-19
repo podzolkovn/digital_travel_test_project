@@ -127,4 +127,3 @@ async def test_bad_request_empty_data_register(
     # Step 3: Verify that the response contains error details indicating
     # missing fields, with the error type set to "missing."
     assert response.json()["detail"][0]["type"] == "missing", "Field required"
-
