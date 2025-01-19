@@ -90,7 +90,9 @@ async def test_success_filter_by_price_orders(
 
     # Step 2: Create multiple orders with different prices
     order_first: Order = await create_order(client)
-    await create_order(client, customer_name="Test customer name", status="CONFIRMED")
+    order_second: Order = await create_order(
+        client, customer_name="Test customer name", status="CONFIRMED"
+    )
     await create_order(client, customer_name="Test customer name 3", status="CANCELLED")
 
     # Step 3: Update the total price of created orders in the database
